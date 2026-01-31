@@ -15,12 +15,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SalesPage() {
-  const [startDate, setStartDate] = useState('2026-02-01');
-  const [endDate, setEndDate] = useState('2026-04-30');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Auto-detect available date range
+  const { data: dataRange } = useQuery({
+    queryKey: ['sales-date-range'],
+    queryFn: async () => {
+      const { data: first } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: true })
+        .limit(1);
+      
+      const { data: last } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: false })
+        .limit(1);
+      
+      return {
+        minDate: first?.[0]?.date || '',
+        maxDate: last?.[0]?.date || ''
+      };
+    },
+  });
+
+  // Set dates when data range is detected
+  if (dataRange && !startDate && dataRange.minDate) {
+    setStartDate(dataRange.minDate);
+    setEndDate(dataRange.maxDate);
+  }
 
   const { data: dailySales, isLoading } = useQuery({
     queryKey: ['daily-sales', startDate, endDate],
@@ -93,17 +122,25 @@ export default function SalesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-2">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+        <div className="flex items-center justify-between">
+          <div>
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="mb-2">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold tracking-tight">Sales Analytics</h1>
+            <p className="text-muted-foreground">
+              Detailed sales reports and performance metrics
+            </p>
+          </div>
+          <Link href="/sales/entry">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Record Daily Sales
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Sales Analytics</h1>
-          <p className="text-muted-foreground">
-            Detailed sales reports and performance metrics
-          </p>
         </div>
 
         {/* Date Range Filter */}

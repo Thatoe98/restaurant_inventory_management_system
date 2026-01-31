@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Restaurant Inventory Management",
-  description: "Secure, scalable inventory management for restaurants",
+  title: "RestaurantOS - Complete Restaurant Management System",
+  description: "Comprehensive inventory, sales, and financial management for restaurants. Track menu items, analyze sales performance, manage ingredients, and generate reports.",
+  keywords: ["restaurant", "inventory", "management", "POS", "sales", "analytics"],
 };
 
 export default function RootLayout({
@@ -26,9 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <main className="flex-1">
+            {children}
+          </main>
+        </QueryProvider>
       </body>
     </html>
   );

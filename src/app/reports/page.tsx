@@ -19,8 +19,37 @@ import { ArrowLeft, FileText, Download } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ReportsPage() {
-  const [startDate, setStartDate] = useState('2026-02-01');
-  const [endDate, setEndDate] = useState('2026-04-30');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Auto-detect available date range
+  const { data: dataRange } = useQuery({
+    queryKey: ['reports-date-range'],
+    queryFn: async () => {
+      const { data: first } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: true })
+        .limit(1);
+      
+      const { data: last } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: false })
+        .limit(1);
+      
+      return {
+        minDate: first?.[0]?.date || '',
+        maxDate: last?.[0]?.date || ''
+      };
+    },
+  });
+
+  // Set dates when data range is detected
+  if (dataRange && !startDate && dataRange.minDate) {
+    setStartDate(dataRange.minDate);
+    setEndDate(dataRange.maxDate);
+  }
 
   const { data: cashbook } = useQuery({
     queryKey: ['cashbook', startDate, endDate],

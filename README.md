@@ -1,226 +1,148 @@
-# Restaurant Inventory Management System
+# RestaurantOS - Complete Restaurant Management System
 
-A secure, scalable inventory management web application built specifically for restaurants. Features include general stock tracking, high-value asset monitoring, expiry date tracking, and FIFO (First In, First Out) stock management.
+A comprehensive, production-ready restaurant management platform built with Next.js, TypeScript, and Supabase. Designed for both technical and non-technical users to manage inventory, track sales, analyze performance, and generate financial reports.
 
-## 🚀 Features
+## 🌟 Features
 
-### Core Functionality
-- **Inventory Dashboard**: Real-time view of all inventory items with alerts
-- **Stock In**: Add new items or replenish existing inventory with batch tracking
-- **Stock Out (FIFO)**: Deduct stock using First In, First Out methodology
-- **High-Value Audit**: Nightly audit mode for expensive items (Whisky, Wagyu, etc.)
-- **Expiry Tracking**: Automatic alerts for items expiring within 7 days
-- **Low Stock Alerts**: Visual warnings when inventory falls below threshold
-- **Transaction Logging**: Complete audit trail of all inventory movements
+### 📊 Dashboard
+- Real-time performance metrics (sales, profit, covers)
+- Today's performance vs. month-to-date comparison
+- Top selling items ranking
+- Low stock alerts
+- Quick navigation to all modules
 
-### Technical Highlights
-- **Mobile-First Design**: Optimized for staff using tablets/phones in kitchen/storage
-- **Real-Time Updates**: React Query for instant UI updates after mutations
-- **Type-Safe**: Full TypeScript implementation with strict typing
-- **Secure**: Supabase Row Level Security (RLS) enabled
-- **Scalable**: PostgreSQL backend with proper indexing
+### 🍕 Menu Management
+- Browse 60+ menu items with filtering
+- View pricing, costs, and profit margins
+- Search functionality
+- Cost percentage analysis
+- Filter by section (Pizza, Drinks, Snacks, etc.)
 
-## 🛠️ Tech Stack
+### 📈 Sales Analytics
+- Daily sales breakdown with trends
+- Top 20 performing items
+- Custom date range filtering
+- Profit margin calculations
+- Visual performance indicators
 
-- **Framework**: Next.js 14+ (App Router, TypeScript)
-- **Styling**: Tailwind CSS + Shadcn/UI
-- **Backend/Database**: Supabase (PostgreSQL, Auth, RLS)
-- **State Management**: Tanstack Query (React Query)
-- **Icons**: Lucide React
-- **Utilities**: date-fns
+### 📦 Ingredients Management
+- Track 35+ ingredients with stock levels
+- Low stock alerts and thresholds
+- Stock in/out with one click
+- Real-time stock value calculation
+- Supplier tracking
 
-## 📋 Prerequisites
+### 💰 Financial Reports
+- Complete P&L statements
+- Revenue and expense breakdown
+- Cashbook transaction history
+- Operating profit analysis
+- Export-ready format
 
-- Node.js 18+ installed
-- A Supabase account (free tier works)
-- Basic understanding of React and Next.js
+### 📥 Data Import
+- CSV file import support
+- Bulk data upload
+- Validation and error handling
+- Progress feedback
 
-## 🔧 Setup Instructions
+## 🛠 Tech Stack
 
-### 1. Supabase Setup
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Database | Supabase (PostgreSQL) |
+| Styling | Tailwind CSS 4 |
+| Components | shadcn/ui |
+| State | TanStack Query v5 |
+| Icons | Lucide React |
 
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Wait for the project to be provisioned (takes ~2 minutes)
-3. Navigate to **SQL Editor** in the left sidebar
-4. Copy the contents of `supabase-schema.sql` and run it in the SQL Editor
-5. Navigate to **Settings > API** and copy:
-   - Project URL
-   - Anon/Public Key
+## 🚀 Quick Start
 
-### 2. Environment Configuration
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account (free tier works)
 
-1. Copy `.env.local.example` to `.env.local`:
-   ```bash
-   cp .env.local.example .env.local
-   ```
-
-2. Update `.env.local` with your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   ```
-
-### 3. Install Dependencies
+### Installation
 
 ```bash
+# Clone or download the project
+cd restaurant-inventory
+
+# Install dependencies
 npm install
-```
 
-### 4. Run Development Server
+# Copy environment template
+cp .env.local.example .env.local
 
-```bash
+# Add your Supabase credentials to .env.local
+# NEXT_PUBLIC_SUPABASE_URL=your-project-url
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Start development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📖 Usage Guide
+### Database Setup
 
-### Adding New Inventory (Stock In)
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to SQL Editor
+3. Copy contents of `supabase-comprehensive-schema.sql`
+4. Run the query
+5. Copy your API credentials from Settings > API
 
-1. Click the **"Stock In"** button in the header
-2. Choose between:
-   - **Existing Item**: Add to an item already in the system
-   - **New Item**: Create a brand new inventory item
-3. For new items, fill in:
-   - Name (e.g., "Wagyu Beef")
-   - Category (e.g., "Meat")
-   - Unit (e.g., "kg")
-   - Check "High Value Item" for expensive items
-   - Set minimum stock threshold for alerts
-4. Enter batch details:
-   - Quantity
-   - Cost price (optional, for financial tracking)
-   - Expiry date (optional, leave blank for non-perishables)
-5. Click **"Add Stock"**
-
-### Using Stock (Stock Out)
-
-1. Find the item in the inventory table
-2. Click the **"Use"** button
-3. Enter the quantity to deduct
-4. Add optional notes (e.g., "Used for dinner service")
-5. Click **"Use Stock"**
-
-The system automatically applies FIFO logic, deducting from the oldest batches first.
-
-### Running an Audit
-
-1. Click the **"Audit"** button in the header
-2. You'll see all high-value items with expected counts
-3. Perform a physical count and enter the **Actual Count**
-4. If there's a discrepancy, the **Reason** field becomes required
-5. Click **"Submit Audit"**
-
-All discrepancies are logged in the transaction history with the "AUDIT_CORRECTION" type.
-
-## 🗂️ Database Schema
-
-### Tables
-
-**items**
-- Stores item definitions (name, category, unit, etc.)
-- `is_high_value`: Flags items for audit tracking
-- `min_stock_threshold`: Triggers low stock alerts
-
-**batches**
-- Represents physical stock on shelves
-- Enables expiry tracking (FIFO)
-- Links to items via `item_id`
-
-**transaction_logs**
-- Complete audit trail
-- Action types: INBOUND, USAGE, AUDIT_CORRECTION, WASTE
-- Tracks who performed action (when auth is enabled)
-
-## 🎨 Project Structure
+## 📁 Project Structure
 
 ```
 restaurant-inventory/
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx          # Root layout with QueryProvider
-│   │   ├── page.tsx            # Main dashboard
-│   │   └── globals.css         # Tailwind + Shadcn styles
+│   ├── app/                    # Next.js pages
+│   │   ├── page.tsx           # Dashboard
+│   │   ├── menu/              # Menu management
+│   │   ├── sales/             # Sales analytics
+│   │   ├── ingredients/       # Ingredient tracking
+│   │   ├── reports/           # Financial reports
+│   │   ├── import/            # Data import
+│   │   └── inventory/         # Legacy inventory
 │   ├── components/
-│   │   ├── ui/                 # Shadcn/UI components
-│   │   ├── stock-in-dialog.tsx # Stock In feature
-│   │   ├── stock-out-dialog.tsx# Stock Out with FIFO
-│   │   └── audit-dialog.tsx    # High-value audit
+│   │   ├── ui/                # shadcn/ui components
+│   │   ├── navigation.tsx     # App navigation
+│   │   └── dialogs/           # Modal dialogs
 │   └── lib/
-│       ├── supabase.ts         # Supabase client
-│       ├── database.types.ts   # TypeScript types
-│       ├── query-provider.tsx  # React Query setup
-│       └── utils.ts            # Utility functions
-├── supabase-schema.sql         # Database schema
-├── .env.local                  # Environment variables
-└── package.json
+│       ├── supabase.ts        # Database client
+│       ├── csv-import.ts      # Import utilities
+│       └── database.types.ts  # TypeScript types
+├── docs/                       # Documentation
+│   ├── DEVELOPER_GUIDE.md     # Technical documentation
+│   ├── USER_MANUAL.md         # Staff instructions
+│   ├── TESTING_PROCEDURES.md  # QA guidelines
+│   └── BUSINESS_PROPOSAL.md   # Sales document
+└── supabase-comprehensive-schema.sql
 ```
 
-## 🚦 Key Features Explained
+## 📖 Documentation
 
-### FIFO Stock Management
-When staff use stock, the system automatically deducts from the oldest batches first. This ensures proper stock rotation and minimizes waste from expired items.
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Technical documentation for developers
+- **[User Manual](docs/USER_MANUAL.md)** - Step-by-step guide for restaurant staff
+- **[Testing Procedures](docs/TESTING_PROCEDURES.md)** - QA and testing guidelines
+- **[Business Proposal](docs/BUSINESS_PROPOSAL.md)** - System benefits and ROI
 
-### Expiry Alerts
-Items with batches expiring within 7 days are highlighted with an orange badge. Staff can prioritize using these items first.
+## 🔧 Available Scripts
 
-### Low Stock Alerts
-When total stock falls below the configured threshold, a red badge appears to prompt reordering.
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run ESLint
+```
 
-### Audit Trail
-Every inventory movement (additions, usage, corrections) is logged with:
-- Timestamp
-- Action type
-- Quantity change
-- Optional notes
-- User ID (when authentication is enabled)
+## 🤝 Support
 
-## 🔒 Security
-
-- Row Level Security (RLS) enabled on all tables
-- Currently configured for authenticated users only
-- Ready to integrate Supabase Auth when needed
-- No sensitive data exposed in client code
-
-## 🎯 Future Enhancements
-
-- [ ] Barcode scanner integration
-- [ ] User authentication with Supabase Auth
-- [ ] Advanced reporting and analytics
-- [ ] Multi-location support
-- [ ] Automatic reorder suggestions
-- [ ] Export to CSV/PDF
-- [ ] Push notifications for critical alerts
-- [ ] Recipe costing based on inventory prices
-
-## 📝 Notes
-
-- The app is mobile-first but works great on desktop too
-- All buttons are finger-friendly (minimum 44x44px touch targets)
-- React Query handles caching and optimistic updates
-- TypeScript ensures type safety throughout the stack
-
-## 🐛 Troubleshooting
-
-### "Failed to fetch" errors
-- Check that your Supabase URL and Anon Key are correct in `.env.local`
-- Ensure you ran the SQL schema in Supabase
-- Verify RLS policies are enabled
-
-### Stock Out fails with "Insufficient stock"
-- Check that the item has available batches
-- Verify `quantity_remaining` is greater than 0 in the batches table
-
-### Items not showing in dashboard
-- Ensure items were created successfully
-- Check browser console for errors
-- Verify Supabase connection is working
+For technical support or feature requests, please refer to the documentation or contact the development team.
 
 ## 📄 License
 
-MIT License - Feel free to use for your restaurant or modify as needed.
-
----
-
-**Built with ❤️ for restaurant efficiency**
+Private - All rights reserved.

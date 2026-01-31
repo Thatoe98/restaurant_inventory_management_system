@@ -14,12 +14,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Search, Package } from 'lucide-react';
+import { ArrowLeft, Search, Package, Plus, Edit } from 'lucide-react';
 import Link from 'next/link';
+import { MenuItemDialog } from '@/components/menu-item-dialog';
+
+interface MenuItem {
+  id: string;
+  name: string;
+  menu_type: string;
+  section: string;
+  unit_price: number;
+  unit_cost: number;
+  unit_gp: number;
+  cost_percentage: number | null;
+  is_active: boolean;
+}
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSection, setSelectedSection] = useState<string>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editItem, setEditItem] = useState<MenuItem | null>(null);
 
   const { data: menuItems, isLoading } = useQuery({
     queryKey: ['menu-items'],
@@ -61,17 +76,23 @@ export default function MenuPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-2">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Menu Management</h1>
-          <p className="text-muted-foreground">
-            Browse and manage your restaurant menu items
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="mb-2">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold tracking-tight">Menu Management</h1>
+            <p className="text-muted-foreground">
+              Browse and manage your restaurant menu items
+            </p>
+          </div>
+          <Button onClick={() => { setEditItem(null); setDialogOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Item
+          </Button>
         </div>
 
         {/* Filters */}
@@ -130,13 +151,22 @@ export default function MenuPage() {
                       <CardTitle className="text-base">{item.name}</CardTitle>
                       <p className="text-xs text-slate-500">{item.section}</p>
                     </div>
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                      item.menu_type === 'Food' 
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {item.menu_type}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setEditItem(item as MenuItem); setDialogOpen(true); }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${
+                        item.menu_type === 'Food' 
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {item.menu_type}
+                      </span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -219,6 +249,13 @@ export default function MenuPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Menu Item Dialog */}
+        <MenuItemDialog
+          open={dialogOpen}
+          onClose={() => { setDialogOpen(false); setEditItem(null); }}
+          editItem={editItem}
+        />
       </div>
     </div>
   );

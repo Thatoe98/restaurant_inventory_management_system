@@ -21,7 +21,36 @@ import {
 import Link from 'next/link';
 
 export default function Home() {
-  const [dateRange, setDateRange] = useState({ start: '2026-02-01', end: '2026-04-30' });
+  // Date range state - will be updated when we detect available data
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+
+  // First, detect what date range has data
+  const { data: dataRange } = useQuery({
+    queryKey: ['data-date-range'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: true })
+        .limit(1);
+      
+      const { data: lastData } = await supabase
+        .from('daily_summaries')
+        .select('date')
+        .order('date', { ascending: false })
+        .limit(1);
+      
+      const minDate = data?.[0]?.date || new Date().toISOString().split('T')[0];
+      const maxDate = lastData?.[0]?.date || new Date().toISOString().split('T')[0];
+      
+      return { minDate, maxDate };
+    },
+  });
+
+  // Update date range when we know what data exists
+  if (dataRange && !dateRange.start) {
+    setDateRange({ start: dataRange.minDate, end: dataRange.maxDate });
+  }
 
   // Fetch dashboard statistics
   const { data: stats, isLoading } = useQuery({
@@ -143,6 +172,37 @@ export default function Home() {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <header className="border-b bg-white shadow-sm">
+          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Restaurant Dashboard</h1>
+                <p className="text-sm text-slate-500">Loading data...</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="h-20 bg-slate-200 rounded-lg"></div>
+              ))}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="h-32 bg-slate-200 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
