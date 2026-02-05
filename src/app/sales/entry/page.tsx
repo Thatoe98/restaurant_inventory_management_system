@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, Trash2, Save, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, Calendar, Upload, FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
 
 interface SaleEntry {
@@ -20,12 +20,14 @@ interface SaleEntry {
 
 export default function SalesEntryPage() {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
   const [entries, setEntries] = useState<SaleEntry[]>([]);
   const [selectedItemId, setSelectedItemId] = useState('');
+  const [csvImportStatus, setCsvImportStatus] = useState<string>('');
 
   // Load menu items for dropdown
   const { data: menuItems } = useQuery({
@@ -110,6 +112,136 @@ export default function SalesEntryPage() {
 
   const removeEntry = (index: number) => {
     setEntries(entries.filter((_, i) => i !== index));
+  };
+
+  // CSV Import Handler
+  const handleCsvImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setCsvImportStatus('Reading CSV...');
+    
+    const text = await file.text();
+    const lines = text.split('\n').filter(line => line.trim());
+    
+    if (lines.length < 2) {
+      setCsvImportStatus('Error: CSV file is empty or has no data rows');
+      return;
+    }
+
+    // Parse header
+    const header = lines[0].toLowerCase();
+    const hasItemId = header.includes('item_id') || header.includes('menu_item_id');
+    const hasItemName = header.includes('item_name') || header.includes('name') || header.includes('menu_item');
+    const hasQuantity = header.includes('quantity') || header.includes('qty') || header.includes('qty_sold');
+
+    if (!hasQuantity) {
+      setCsvImportStatus('Error: CSV must have a quantity/qty/qty_sold column');
+      return;
+    }
+
+    if (!hasItemId && !hasItemName) {
+      setCsvImportStatus('Error: CSV must have item_id/menu_item_id or item_name/name column');
+      return;
+    }
+
+    // Parse CSV rows
+    const parseCSVRow = (row: string): string[] => {
+      const values: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          values.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim());
+      return values;
+    };
+
+    const headerCols = parseCSVRow(lines[0]).map(h => h.toLowerCase().replace(/"/g, ''));
+    
+    // Find column indices
+    const itemIdIdx = headerCols.findIndex(h => h === 'item_id' || h === 'menu_item_id');
+    const itemNameIdx = headerCols.findIndex(h => h === 'item_name' || h === 'name' || h === 'menu_item');
+    const qtyIdx = headerCols.findIndex(h => h === 'quantity' || h === 'qty' || h === 'qty_sold');
+    const dateIdx = headerCols.findIndex(h => h === 'date');
+
+    const newEntries: SaleEntry[] = [];
+    const errors: string[] = [];
+    let importedDate = date;
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCSVRow(lines[i]);
+      if (values.length < 2) continue;
+
+      // Get date from CSV if present (use first row's date)
+      if (dateIdx >= 0 && i === 1 && values[dateIdx]) {
+        importedDate = values[dateIdx].replace(/"/g, '');
+        setDate(importedDate);
+      }
+
+      const quantity = parseInt(values[qtyIdx]?.replace(/"/g, '') || '0');
+      if (quantity <= 0) continue;
+
+      // Find menu item by ID or name
+      let menuItem = null;
+      
+      if (itemIdIdx >= 0 && values[itemIdIdx]) {
+        const itemId = values[itemIdIdx].replace(/"/g, '');
+        menuItem = menuItems?.find(m => m.id === itemId);
+      }
+      
+      if (!menuItem && itemNameIdx >= 0 && values[itemNameIdx]) {
+        const itemName = values[itemNameIdx].replace(/"/g, '').toLowerCase();
+        menuItem = menuItems?.find(m => m.name.toLowerCase() === itemName);
+        
+        // Try partial match if exact match fails
+        if (!menuItem) {
+          menuItem = menuItems?.find(m => 
+            m.name.toLowerCase().includes(itemName) || 
+            itemName.includes(m.name.toLowerCase())
+          );
+        }
+      }
+
+      if (menuItem) {
+        // Check if already in entries
+        const existingIdx = newEntries.findIndex(e => e.menu_item_id === menuItem.id);
+        if (existingIdx >= 0) {
+          newEntries[existingIdx].quantity += quantity;
+        } else {
+          newEntries.push({
+            menu_item_id: menuItem.id,
+            menu_item_name: menuItem.name,
+            quantity,
+            unit_price: menuItem.unit_price,
+            unit_cost: menuItem.unit_cost,
+          });
+        }
+      } else {
+        errors.push(`Row ${i + 1}: Could not find menu item`);
+      }
+    }
+
+    if (newEntries.length > 0) {
+      setEntries(newEntries);
+      setCsvImportStatus(`✅ Imported ${newEntries.length} items${errors.length > 0 ? ` (${errors.length} errors)` : ''}`);
+    } else {
+      setCsvImportStatus(`Error: No valid items found. ${errors.slice(0, 3).join(', ')}`);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const saveMutation = useMutation({
@@ -236,10 +368,10 @@ export default function SalesEntryPage() {
           <CardHeader>
             <CardTitle>Add Items Sold</CardTitle>
             <CardDescription>
-              Select menu items and enter quantities sold
+              Select menu items and enter quantities sold, or import from CSV
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex gap-4">
               <select
                 value={selectedItemId}
@@ -257,6 +389,35 @@ export default function SalesEntryPage() {
                 <Plus className="mr-2 h-4 w-4" />
                 Add
               </Button>
+            </div>
+
+            {/* CSV Import Section */}
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Import from CSV
+                  </Label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    CSV should have columns: item_id or item_name, quantity (qty/qty_sold), optionally date
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCsvImport}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+              {csvImportStatus && (
+                <p className={`mt-2 text-sm ${csvImportStatus.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                  {csvImportStatus}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

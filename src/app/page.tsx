@@ -16,7 +16,9 @@ import {
   Calendar,
   Menu as MenuIcon,
   FileText,
-  Upload
+  Upload,
+  UtensilsCrossed,
+  ClipboardList
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -228,7 +230,7 @@ export default function Home() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Quick Navigation */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/sales">
             <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]">
               <CardHeader className="pb-3">
@@ -269,6 +271,30 @@ export default function Home() {
                   <FileText className="mr-2 h-4 w-4 text-orange-600" />
                   Financial Reports
                 </CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/menu-order">
+            <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-amber-200 bg-amber-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-sm font-medium">
+                  <UtensilsCrossed className="mr-2 h-4 w-4 text-amber-600" />
+                  Customer Menu
+                </CardTitle>
+                <p className="text-xs text-slate-500">Browse & Order</p>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/orders">
+            <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-rose-200 bg-rose-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-sm font-medium">
+                  <ClipboardList className="mr-2 h-4 w-4 text-rose-600" />
+                  Order Management
+                </CardTitle>
+                <p className="text-xs text-slate-500">Staff Orders</p>
               </CardHeader>
             </Card>
           </Link>
