@@ -25,7 +25,7 @@ A comprehensive, production-ready restaurant management platform built with Next
 - Profit margin calculations
 - Visual performance indicators
 
-### 📦 Ingredients Management
+### 📦 Inventory
 - Track 35+ ingredients with stock levels
 - Low stock alerts and thresholds
 - Stock in/out with one click

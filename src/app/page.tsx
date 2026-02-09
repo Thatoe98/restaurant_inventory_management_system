@@ -217,7 +217,7 @@ export default function Home() {
               <p className="text-sm text-slate-500">Complete inventory & sales management system</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/import">
+              <Link href="/import-data">
                 <Button variant="outline" size="sm">
                   <Upload className="mr-2 h-4 w-4" />
                   Import Data

@@ -21,7 +21,7 @@ const navItems = [
   { href: '/menu', label: 'Menu', icon: UtensilsCrossed },
   { href: '/ingredients', label: 'Ingredients', icon: Package },
   { href: '/reports', label: 'Reports', icon: FileText },
-  { href: '/import', label: 'Import Data', icon: Upload },
+  { href: '/import-data', label: 'Import Data', icon: Upload },
 ];
 
 export function Navigation() {

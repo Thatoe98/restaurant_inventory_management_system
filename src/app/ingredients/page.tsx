@@ -114,8 +114,8 @@ export default function IngredientsPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Dashboard
             </Link>
-            <h1 className="text-3xl font-bold">Ingredients Management</h1>
-            <p className="text-gray-600">Monitor stock levels and costs</p>
+            <h1 className="text-3xl font-bold">Inventory</h1>
+            <p className="text-gray-600">Monitor stock levels, costs, and expiry dates</p>
           </div>
         </div>
 
